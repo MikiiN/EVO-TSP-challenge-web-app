@@ -5,8 +5,8 @@ import sqlite3
 import os
 from dotenv import load_dotenv
 
-
 import src.route as r
+import src.database as db
 
 load_dotenv()
 
@@ -63,34 +63,10 @@ def calculate_tsp_distance(cities: str):
     return distance
 
 
-# --- DATABASE CONNECTION ---
-def get_db_connection():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
-
 # --- ROUTES ---
 @app.route('/')
 def leaderboard():
-    conn = get_db_connection()
-    query = '''
-        SELECT login, algorithm, description, route, MIN(distance) as distance, MAX(submission_time) as submission_time 
-        FROM results 
-        GROUP BY login 
-        ORDER BY distance ASC, submission_time ASC
-    '''
-    results = conn.execute(query).fetchall()
-    conn.close()
-    ranked_results = []
-    for i in range(len(results)):
-        row = dict(results[i]) 
-        if i > 0 and row['distance'] == results[i-1]['distance']:
-            row['rank'] = ranked_results[-1]['rank']
-        else:
-            row['rank'] = i + 1
-            
-        ranked_results.append(row)
-    
+    ranked_results = db.get_leaderboard()
     best_route_string = ranked_results[0]['route'] if ranked_results else None
     js_cities = {str(k): {"x": v[2], "y": v[3]} for k, v in CITY_DATASET.items()}
     return render_template('index.html', results=ranked_results, best_route=best_route_string, cities=json.dumps(js_cities))
@@ -112,31 +88,15 @@ def submit():
 
     # If it passes, calculate distance and save it to the database
     calculated_distance = calculate_tsp_distance(route)
-    conn = get_db_connection()
-    conn.execute('''
-        INSERT INTO results (login, algorithm, description, distance, route) 
-        VALUES (?, ?, ?, ?, ?)
-    ''', (login, algorithm, description, calculated_distance, route_string))
-    conn.commit()
-    conn.close()
+    db.write_data(login, algorithm, description, calculated_distance, route_string)
     
     return jsonify({"status": "success"}), 200
 
 
 @app.route('/history/<login>')
 def get_history(login):
-    conn = get_db_connection()
-    query = '''
-        SELECT distance, algorithm, description, route, submission_time 
-        FROM results 
-        WHERE login = ? 
-        ORDER BY submission_time DESC
-    '''
-    raw_results = conn.execute(query, (login,)).fetchall()
-    conn.close()
-
+    raw_results = db.get_history(login)
     history_data = [dict(row) for row in raw_results]
-    
     return jsonify(history_data), 200
 
 
@@ -172,7 +132,7 @@ def admin():
     if not session.get('is_admin'):
         return redirect('/login')
 
-    conn = get_db_connection()
+    conn = db.get_db_connection()
     # Fetch EVERY submission, ordered by newest first
     query = 'SELECT * FROM results ORDER BY submission_time DESC'
     all_results = conn.execute(query).fetchall()
@@ -185,12 +145,7 @@ def admin_delete(submission_id):
     if not session.get('is_admin'):
         return redirect('/login')
     
-    conn = get_db_connection()
-    # Delete only the specific submission
-    conn.execute('DELETE FROM results WHERE id = ?', (submission_id,))
-    conn.commit()
-    conn.close()
-    
+    db.remove_submission(submission_id)
     return redirect('/admin')
 
 @app.route('/admin/clear', methods=['POST'])
@@ -198,12 +153,7 @@ def admin_clear():
     if not session.get('is_admin'):
         return redirect('/login')
 
-    conn = get_db_connection()
-    # Delete everything in the table
-    conn.execute('DELETE FROM results')
-    conn.commit()
-    conn.close()
-    
+    db.clear_database()
     return redirect('/admin')
 
 
