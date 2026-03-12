@@ -228,6 +228,15 @@ fr225={
 'Wissembourg':(49.0370, 7.9454, 1092, 262),
 }
 
+BASE_ALGORITHMS = [
+    "Genetic Algorithm",
+    "Metropolis Algorithm",
+    "Ant Colony Optimization",
+    "Particle Swarm",
+    "Evolutionary Algorithm",
+    "Other",
+]
+
 def get_cities():
     return list(fr225.keys())
 

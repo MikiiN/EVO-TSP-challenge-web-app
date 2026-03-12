@@ -4,8 +4,7 @@ from dotenv import load_dotenv
 
 
 load_dotenv()
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, os.getenv("DB"))
+DB_PATH = os.getenv("DB")
 
 
 def get_db_connection():

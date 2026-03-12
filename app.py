@@ -1,30 +1,27 @@
 import ast
 from flask import Flask, request, render_template, redirect, jsonify, session
 import json
-import sqlite3
 import os
 from dotenv import load_dotenv
 
-import src.route as r
+import src.dataset as dt
 import src.database as db
 
 load_dotenv()
 
-CITY_DATASET = r.fr225
+CITY_DATASET = dt.fr225
 ADMIN_PASSWORD = os.getenv("PASSWORD")
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, os.getenv("DB"))
 
 
 app = Flask(__name__)
 
 app.secret_key = os.getenv("SECRET_KEY") 
 
-_, _, _, distances = r.calc_city_distances(CITY_DATASET)
+_, _, _, distances = dt.calc_city_distances(CITY_DATASET)
 
 
 def check_city_existence(city):
-    return city in r.get_cities()
+    return city in dt.get_cities()
 
 
 def validate_and_parse_route(route):
@@ -59,17 +56,25 @@ def validate_and_parse_route(route):
 
 
 def calculate_tsp_distance(cities: str):
-    distance = r.get_route_length(distances, cities)
+    distance = dt.get_route_length(distances, cities)
     return distance
 
 
-# --- ROUTES ---
+# ==========================================
+# INDEX PAGE ROUTES
+# ==========================================
 @app.route('/')
 def leaderboard():
     ranked_results = db.get_leaderboard()
     best_route_string = ranked_results[0]['route'] if ranked_results else None
     js_cities = {str(k): {"x": v[2], "y": v[3]} for k, v in CITY_DATASET.items()}
-    return render_template('index.html', results=ranked_results, best_route=best_route_string, cities=json.dumps(js_cities))
+    return render_template(
+        'index.html', 
+        results=ranked_results, 
+        best_route=best_route_string, 
+        cities=json.dumps(js_cities),
+        alg_options=dt.BASE_ALGORITHMS
+    )
 
 
 @app.route('/submit', methods=['POST'])
@@ -78,6 +83,9 @@ def submit():
     algorithm = request.form['algorithm']
     description = request.form.get('description', '')
     route_string = request.form['route'] 
+
+    if not algorithm in dt.BASE_ALGORITHMS:
+        return jsonify({"status": "error", "message": "Invalid Base algorithm value"}), 400
     
     # validation and parsing
     route, error_message = validate_and_parse_route(route_string)
@@ -116,6 +124,7 @@ def login():
             
     return render_template('login.html', error=error)
 
+
 @app.route('/logout')
 def logout():
     session.pop('is_admin', None)
@@ -140,6 +149,7 @@ def admin():
     
     return render_template('admin.html', results=all_results)
 
+
 @app.route('/admin/delete/<int:submission_id>', methods=['POST'])
 def admin_delete(submission_id):
     if not session.get('is_admin'):
@@ -147,6 +157,7 @@ def admin_delete(submission_id):
     
     db.remove_submission(submission_id)
     return redirect('/admin')
+
 
 @app.route('/admin/clear', methods=['POST'])
 def admin_clear():

@@ -104,12 +104,9 @@
                             <label class="form-label text-muted fw-bold text-uppercase">Base Algorithm</label>
                             <select id="algorithmSelect" class="form-select bg-light" name="algorithm" required>
                                 <option value="" disabled selected>Search or select an algorithm...</option>
-                                <option value="Genetic Algorithm">Genetic Algorithm</option>
-                                <option value="Metropolis Algorithm">Metropolis Algorithm</option>
-                                <option value="Ant Colony Optimization">Ant Colony Optimization</option>
-                                <option value="Particle Swarm">Particle Swarm</option>
-                                <option value="Evolutionary Algorithm">Evolutionary algorithm</option>
-                                <option value="Other">Other</option>
+                                {% for alg in alg_options %}
+                                    <option value="{{ alg }}">{{ alg }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                         

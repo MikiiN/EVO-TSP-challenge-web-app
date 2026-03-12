@@ -7,7 +7,7 @@ function showHistory(login) {
             const tbody = document.getElementById('historyTableBody');
             tbody.innerHTML = '';
 
-            // Notice we added 'index' here to create unique IDs for the collapsible rows
+            // 'index' to create unique IDs for the collapsible rows
             data.forEach((attempt, index) => {
                 let formattedDistance = parseFloat(attempt.distance).toFixed(2);
                 let collapseId = `descCollapse_${index}`;
