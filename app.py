@@ -66,6 +66,7 @@ def calculate_tsp_distance(cities: str):
 @app.route('/')
 def leaderboard():
     ranked_results = db.get_leaderboard()
+    boxplot_data = db.get_boxplot_data()
     best_route_string = ranked_results[0]['route'] if ranked_results else None
     js_cities = {str(k): {"x": v[2], "y": v[3]} for k, v in CITY_DATASET.items()}
     return render_template(
@@ -73,7 +74,8 @@ def leaderboard():
         results=ranked_results, 
         best_route=best_route_string, 
         cities=json.dumps(js_cities),
-        alg_options=dt.BASE_ALGORITHMS
+        alg_options=dt.BASE_ALGORITHMS,
+        boxplot_data=json.dumps(boxplot_data)
     )
 
 

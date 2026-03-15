@@ -35,6 +35,21 @@ def get_leaderboard():
     return ranked_results
 
 
+def get_boxplot_data():
+    conn = get_db_connection()
+    query_all = 'SELECT algorithm, distance FROM results'
+    all_results = conn.execute(query_all).fetchall()
+    conn.close()
+    boxplot_data = {}
+    for row in all_results:
+        algo = row['algorithm']
+        dist = row['distance']
+        if algo not in boxplot_data:
+            boxplot_data[algo] = []
+        boxplot_data[algo].append(dist)
+    return boxplot_data
+
+
 def write_data(login, algorithm, description, distance, route):
     conn = get_db_connection()
     conn.execute('''

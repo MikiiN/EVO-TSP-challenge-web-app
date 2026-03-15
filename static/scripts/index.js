@@ -135,4 +135,38 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
     }
+
+    // --- BOXPLOT DRAWING ---
+    const boxData = window.TSP_DATA.boxplotData;
+    const boxplotDiv = document.getElementById('boxplotDiv');
+
+    // Only draw the chart if there is actually data in the database
+    if (boxData && Object.keys(boxData).length > 0 && boxplotDiv) {
+        const plotTraces = [];
+
+        // Loop through our dictionary and create a "Trace" (a boxplot) for each algorithm
+        for (const [algo, distances] of Object.entries(boxData)) {
+            plotTraces.push({
+                y: distances,       // The array of distances
+                type: 'box',        // Tell Plotly to make a boxplot
+                name: algo,         // The label at the bottom
+                boxpoints: 'all',   // Show all individual submission dots next to the box!
+                jitter: 0.3,        // Spread the dots out slightly so they don't overlap
+                pointpos: -1.8      // Put the dots on the left side of the box
+            });
+        }
+
+        const layout = {
+            margin: { t: 20, b: 80, l: 60, r: 20 },
+            yaxis: { title: 'Total Distance', zeroline: false },
+            showlegend: false,      // Hide the legend since the x-axis labels are enough
+            paper_bgcolor: 'transparent',
+            plot_bgcolor: 'transparent'
+        };
+
+        Plotly.newPlot('boxplotDiv', plotTraces, layout, {responsive: true});
+    } else if (boxplotDiv) {
+        // If the database is empty, show a friendly message
+        boxplotDiv.innerHTML = '<div class="d-flex h-100 justify-content-center align-items-center text-muted">Submit routes to generate comparison charts!</div>';
+    }
 });
