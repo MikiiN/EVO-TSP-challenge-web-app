@@ -50,6 +50,21 @@ def get_boxplot_data():
     return boxplot_data
 
 
+def get_barplot_data():
+    conn = get_db_connection()
+    query = '''
+        SELECT login, algorithm, distance 
+        FROM results 
+        ORDER BY distance ASC
+    '''
+    data = conn.execute(query).fetchall()
+    conn.close()
+    return {
+        "labels": [f"{row['login']} - {row['algorithm']}" for row in data],
+        "distances": [row['distance'] for row in data]
+    }
+
+
 def write_data(login, algorithm, description, distance, route):
     conn = get_db_connection()
     conn.execute('''

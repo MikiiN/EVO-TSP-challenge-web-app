@@ -231,6 +231,7 @@ fr225={
 BASE_ALGORITHMS = [
     "Genetic Algorithm",
     "Metropolis Algorithm",
+    "Differential Evolution",
     "Ant Colony Optimization",
     "Particle Swarm",
     "Evolutionary Algorithm",

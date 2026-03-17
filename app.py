@@ -2,7 +2,9 @@ import ast
 from flask import Flask, request, render_template, redirect, jsonify, session
 import json
 import os
-from dotenv import load_dotenv
+
+from dotenv import load_dotenv  
+from werkzeug.security import check_password_hash, generate_password_hash
 
 import src.dataset as dt
 import src.database as db
@@ -10,12 +12,17 @@ import src.database as db
 load_dotenv()
 
 CITY_DATASET = dt.fr225
-ADMIN_PASSWORD = os.getenv("PASSWORD")
+ADMIN_PASSWORD_HASH = generate_password_hash(os.getenv("PASSWORD"))
 
 
 app = Flask(__name__)
 
 app.secret_key = os.getenv("SECRET_KEY") 
+
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SECURE'] = True 
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
 
 _, _, _, distances = dt.calc_city_distances(CITY_DATASET)
 
@@ -67,6 +74,9 @@ def calculate_tsp_distance(cities: str):
 def leaderboard():
     ranked_results = db.get_leaderboard()
     boxplot_data = db.get_boxplot_data()
+
+    barplot_data = db.get_barplot_data()
+
     best_route_string = ranked_results[0]['route'] if ranked_results else None
     js_cities = {str(k): {"x": v[2], "y": v[3]} for k, v in CITY_DATASET.items()}
     return render_template(
@@ -75,7 +85,8 @@ def leaderboard():
         best_route=best_route_string, 
         cities=json.dumps(js_cities),
         alg_options=dt.BASE_ALGORITHMS,
-        boxplot_data=json.dumps(boxplot_data)
+        boxplot_data=json.dumps(boxplot_data),
+        barplot_data=json.dumps(barplot_data)
     )
 
 
@@ -114,15 +125,16 @@ def get_history(login):
 # ADMIN AUTHENTICATION ROUTES
 # ==========================================
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['GET','POST'])
 def login():
     error = None
     if request.method == 'POST':
-        if request.form.get('password') == ADMIN_PASSWORD:
+        if check_password_hash(ADMIN_PASSWORD_HASH, request.form.get('password')):
+            session.clear()
             session['is_admin'] = True 
             return redirect('/admin')
         else:
-            error = "Incorrect password. Nice try!"
+            error = "Incorrect password"
             
     return render_template('login.html', error=error)
 

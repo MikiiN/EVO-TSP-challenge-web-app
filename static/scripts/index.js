@@ -116,8 +116,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (i === 0) ctx.moveTo(city.x, city.y);
                 else ctx.lineTo(city.x, city.y);
             }
-            const firstCity = cities[route[0]];
-            if (firstCity) ctx.lineTo(firstCity.x, firstCity.y);
             ctx.stroke();
 
             // Draw Highlight Dots
@@ -147,12 +145,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Loop through our dictionary and create a "Trace" (a boxplot) for each algorithm
         for (const [algo, distances] of Object.entries(boxData)) {
             plotTraces.push({
-                y: distances,       // The array of distances
-                type: 'box',        // Tell Plotly to make a boxplot
-                name: algo,         // The label at the bottom
-                boxpoints: 'all',   // Show all individual submission dots next to the box!
-                jitter: 0.3,        // Spread the dots out slightly so they don't overlap
-                pointpos: -1.8      // Put the dots on the left side of the box
+                y: distances,       
+                type: 'box',        
+                name: algo,         
+                boxpoints: 'all',   
+                jitter: 0.3,        
+                pointpos: -1.8 
             });
         }
 
@@ -166,7 +164,75 @@ document.addEventListener('DOMContentLoaded', () => {
 
         Plotly.newPlot('boxplotDiv', plotTraces, layout, {responsive: true});
     } else if (boxplotDiv) {
-        // If the database is empty, show a friendly message
+        // If the database is empty
         boxplotDiv.innerHTML = '<div class="d-flex h-100 justify-content-center align-items-center text-muted">Submit routes to generate comparison charts!</div>';
+    }
+
+    // --- HORIZONTAL BAR PLOT DRAWING ---
+    const barData = window.TSP_DATA.barplotData;
+    const barplotDiv = document.getElementById('barplotDiv');
+    const limitSelect = document.getElementById('resultLimit');
+
+    function renderBarChart(limitValue) {
+        if (!barData || !barData.labels || barData.labels.length === 0 || !barplotDiv) {
+            if (barplotDiv) barplotDiv.innerHTML = '<div class="d-flex justify-content-center align-items-center text-muted" style="height: 200px;">Submit routes to generate the standings chart!</div>';
+            return;
+        }
+
+        // Slice the data based on the dropdown selection
+        let numItems = barData.labels.length;
+        if (limitValue !== 'all') {
+            numItems = Math.min(parseInt(limitValue), numItems);
+        }
+
+        const slicedLabels = barData.labels.slice(0, numItems);
+        const slicedDistances = barData.distances.slice(0, numItems);
+        
+        // Generate the invisible row numbers for the sliced data
+        const rowIndices = slicedLabels.map((_, index) => index);
+
+        // Calculate dynamic height based ONLY on the number of bars we are showing
+        const chartHeight = Math.max(300, numItems * 35);
+
+        const trace = {
+            x: slicedDistances,
+            y: rowIndices,
+            type: 'bar',
+            orientation: 'h', 
+            marker: { color: '#0d6efd', opacity: 0.8 },
+            text: slicedDistances.map(d => d.toFixed(2)),
+            textposition: 'auto',
+            hovertemplate: '%{customdata}<br>Distance: %{x}<extra></extra>',
+            customdata: slicedLabels 
+        };
+
+        const layout = {
+            height: chartHeight,
+            margin: { t: 20, b: 40, l: 140, r: 40 }, 
+            yaxis: { 
+                autorange: 'reversed', 
+                tickfont: { size: 11, weight: 'bold' },
+                automargin: true,
+                tickmode: 'array',
+                tickvals: rowIndices,
+                ticktext: slicedLabels
+            },
+            xaxis: { title: 'Distance', zeroline: false },
+            paper_bgcolor: 'transparent',
+            plot_bgcolor: 'transparent'
+        };
+
+        Plotly.newPlot('barplotDiv', [trace], layout, {responsive: true});
+    }
+
+    // Initial Setup and Event Listener
+    if (limitSelect && barplotDiv) {
+        // Draw the chart for the first time using the default dropdown value
+        renderBarChart(limitSelect.value);
+
+        // Listen for the user changing the dropdown
+        limitSelect.addEventListener('change', function(event) {
+            renderBarChart(event.target.value);
+        });
     }
 });
