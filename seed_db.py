@@ -5,13 +5,14 @@ import random
 ALGORITHMS = [
     ("Genetic Algorithm", 8500, 13000),
     ("Ant Colony Optimization", 8300, 10500),
-    ("Particle Swarm", 9000, 14000),     
+    ("Particle Swarm", 9000, 14000),
+    ("Differential Evolution", 7000, 12000),     
     ("Metropolis Algorithm", 8000, 12000),
     ("Evolutionary Algorithm", 10000, 15000),
     ("Other", 9000, 16000),
 ]
 
-LOGINS = ["alice_s", "bob_j", "charlie_99", "diana_opt", "eve_hacker", "frank_tsp", "grace_ai", "hank_code"]
+LOGINS = ["xlogin00", "xlogin01", "xlogin02", "xlogin03", "xlogin04", "xlogin05", "xlogin06", "xlogin07"]
 DESCRIPTIONS = [
     "Tweaked the mutation rate to 0.05", 
     "Standard vanilla implementation.", 
@@ -24,7 +25,7 @@ DESCRIPTIONS = [
 # A generic, safely formatted route string that won't break your frontend map
 DUMMY_ROUTE = "['Angers', 'Paris', 'Lyon', 'Marseille', 'Grenoble']"
 
-def seed_database(num_records=150):
+def seed_database(num_records=100):
     print(f"Planting {num_records} dummy submissions into the database...")
     
     conn = sqlite3.connect('tsp_results.db')
