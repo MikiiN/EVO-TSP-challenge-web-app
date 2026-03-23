@@ -165,7 +165,7 @@
                                 </td>
                                 <td class="text-muted small">{{ row['submission_time'] }}</td>
 
-                            <td class="text-end pe-4" onclick="event.stopPropagation();">
+                            <td class="text-center pe-4" onclick="event.stopPropagation();">
                                     {% if row['description'] %}
                                         <button class="btn btn-primary rounded-pill text-white px-3 btn-toggle-notes" type="button" data-bs-toggle="collapse" data-bs-target="#mainDescCollapse_{{ loop.index }}" aria-expanded="false"></button>
                                     {% else %}
@@ -197,35 +197,6 @@
             </div>
         </div>
         {% endif %}
-
-        <div class="card mb-5 shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title text-center text-muted text-uppercase fw-bold mb-1">Algorithm Consistency</h5>
-                <p class="text-center small text-muted mb-4">Distribution of all submitted route distances</p>
-                <div id="boxplotDiv" style="width: 100%; height: 400px;"></div>
-            </div>
-        </div>
-
-        <div class="card mb-5 shadow-sm">
-            <div class="card-body">
-                
-                <div class="text-center mb-4">
-                    <h5 class="card-title text-muted text-uppercase fw-bold mb-1">Leaderboard Standings</h5>
-                    <p class="small text-muted mb-3">All submissions sorted by distance</p>
-                    
-                    <div class="d-flex justify-content-end">
-                        <select id="resultLimit" class="form-select form-select-sm shadow-sm" style="width: 150px; cursor: pointer;">
-                            <option value="10" selected>Top 10</option>
-                            <option value="25">Top 25</option>
-                            <option value="50">Top 50</option>
-                            <option value="all">All Results</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div id="barplotDiv" style="width: 100%;"></div>
-            </div>
-        </div>
     </div>
 
     <div class="modal fade" id="historyModal" tabindex="-1" aria-labelledby="historyModalLabel" aria-hidden="true">
@@ -259,9 +230,7 @@
     window.TSP_DATA = {
         cities: {{ cities | default('null') | safe }},
         bestRouteStr: {{ best_route | tojson | safe if best_route else '""' }},
-        mapUrl: "{{ url_for('static', filename='map.png') }}",
-        boxplotData: {{ boxplot_data | safe if boxplot_data else '{}' }},
-        barplotData: {{ barplot_data | safe if barplot_data else '{}' }}
+        mapUrl: "{{ url_for('static', filename='map.png') }}"
     };
 </script>
 
@@ -272,8 +241,6 @@
             placeholder: "Search or select an algorithm..."
         });
     </script>
-
-<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
 
 <script src="/static/scripts/index.js"></script>
 </body>

@@ -12,12 +12,12 @@ function showHistory(login) {
                 let formattedDistance = parseFloat(attempt.distance).toFixed(2);
                 let collapseId = `descCollapse_${index}`;
                 
-                // 1. Create the button (only if they actually wrote a description)
+                // Create the button (only if they actually wrote a description)
                 let descButton = attempt.description 
                     ? `<button class="btn btn-primary rounded-pill text-white px-3 btn-toggle-notes" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}" aria-expanded="false" aria-controls="${collapseId}"></button>` 
                     : `<span class="text-muted small">None</span>`;
 
-                // 2. Create the hidden row (only if they actually wrote a description)
+                // Create the hidden row (only if they actually wrote a description)
                 let descRow = attempt.description
                     ? `
                     <tr class="collapse" id="${collapseId}">
@@ -28,13 +28,13 @@ function showHistory(login) {
                     </tr>
                     ` : '';
 
-                // 3. Inject both rows into the table
+                // Inject both rows into the table
                 tbody.innerHTML += `
                     <tr>
                         <td class="ps-4 fw-semibold text-success">${formattedDistance}</td>
                         <td class="small text-muted">${attempt.algorithm}</td> 
                         <td class="small text-muted">${attempt.submission_time}</td>
-                        <td class="text-end pe-4">${descButton}</td>
+                        <td class="text-center pe-4">${descButton}</td>
                     </tr>
                     ${descRow}
                 `;
@@ -132,97 +132,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 ctx.stroke();
             }
         };
-    }
-
-    // --- BOXPLOT DRAWING ---
-    const boxData = window.TSP_DATA.boxplotData;
-    const boxplotDiv = document.getElementById('boxplotDiv');
-
-    // Only draw the chart if there is actually data in the database
-    if (boxData && Object.keys(boxData).length > 0 && boxplotDiv) {
-        const plotTraces = [];
-
-        // Loop through our dictionary and create a "Trace" (a boxplot) for each algorithm
-        for (const [algo, distances] of Object.entries(boxData)) {
-            plotTraces.push({
-                y: distances,       
-                type: 'box',        
-                name: algo,         
-                boxpoints: 'all',   
-                jitter: 0.3,        
-                pointpos: -1.8 
-            });
-        }
-
-        const layout = {
-            margin: { t: 20, b: 80, l: 60, r: 20 },
-            yaxis: { title: 'Total Distance', zeroline: false },
-            showlegend: false,      // Hide the legend since the x-axis labels are enough
-            paper_bgcolor: 'transparent',
-            plot_bgcolor: 'transparent'
-        };
-
-        Plotly.newPlot('boxplotDiv', plotTraces, layout, {responsive: true});
-    } else if (boxplotDiv) {
-        // If the database is empty
-        boxplotDiv.innerHTML = '<div class="d-flex h-100 justify-content-center align-items-center text-muted">Submit routes to generate comparison charts!</div>';
-    }
-
-    // --- HORIZONTAL BAR PLOT DRAWING ---
-    const barData = window.TSP_DATA.barplotData;
-    const barplotDiv = document.getElementById('barplotDiv');
-    const limitSelect = document.getElementById('resultLimit');
-
-    function renderBarChart(limitValue) {
-        if (!barData || !barData.labels || barData.labels.length === 0 || !barplotDiv) {
-            if (barplotDiv) barplotDiv.innerHTML = '<div class="d-flex justify-content-center align-items-center text-muted" style="height: 200px;">Submit routes to generate the standings chart!</div>';
-            return;
-        }
-
-        // Slice the data based on the dropdown selection
-        let numItems = barData.labels.length;
-        if (limitValue !== 'all') {
-            numItems = Math.min(parseInt(limitValue), numItems);
-        }
-
-        const slicedLabels = barData.labels.slice(0, numItems);
-        const slicedDistances = barData.distances.slice(0, numItems);
-        
-        // Generate the invisible row numbers for the sliced data
-        const rowIndices = slicedLabels.map((_, index) => index);
-
-        // Calculate dynamic height based ONLY on the number of bars we are showing
-        const chartHeight = Math.max(300, numItems * 35);
-
-        const trace = {
-            x: slicedDistances,
-            y: rowIndices,
-            type: 'bar',
-            orientation: 'h', 
-            marker: { color: '#0d6efd', opacity: 0.8 },
-            text: slicedDistances.map(d => d.toFixed(2)),
-            textposition: 'auto',
-            hovertemplate: '%{customdata}<br>Distance: %{x}<extra></extra>',
-            customdata: slicedLabels 
-        };
-
-        const layout = {
-            height: chartHeight,
-            margin: { t: 20, b: 40, l: 140, r: 40 }, 
-            yaxis: { 
-                autorange: 'reversed', 
-                tickfont: { size: 11, weight: 'bold' },
-                automargin: true,
-                tickmode: 'array',
-                tickvals: rowIndices,
-                ticktext: slicedLabels
-            },
-            xaxis: { title: 'Distance', zeroline: false },
-            paper_bgcolor: 'transparent',
-            plot_bgcolor: 'transparent'
-        };
-
-        Plotly.newPlot('barplotDiv', [trace], layout, {responsive: true});
     }
 
     // Initial Setup and Event Listener

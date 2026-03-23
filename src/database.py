@@ -16,13 +16,14 @@ def get_db_connection():
 def get_leaderboard():
     conn = get_db_connection()
     query = '''
-        SELECT login, algorithm, description, route, MIN(distance) as distance, MAX(submission_time) as submission_time 
+        SELECT login, algorithm, description, route, MIN(distance) as distance, submission_time 
         FROM results 
         GROUP BY login 
         ORDER BY distance ASC, submission_time ASC
     '''
     results = conn.execute(query).fetchall()
     conn.close()
+    
     ranked_results = []
     for i in range(len(results)):
         row = dict(results[i]) 
@@ -33,36 +34,6 @@ def get_leaderboard():
             
         ranked_results.append(row)
     return ranked_results
-
-
-def get_boxplot_data():
-    conn = get_db_connection()
-    query_all = 'SELECT algorithm, distance FROM results'
-    all_results = conn.execute(query_all).fetchall()
-    conn.close()
-    boxplot_data = {}
-    for row in all_results:
-        algo = row['algorithm']
-        dist = row['distance']
-        if algo not in boxplot_data:
-            boxplot_data[algo] = []
-        boxplot_data[algo].append(dist)
-    return boxplot_data
-
-
-def get_barplot_data():
-    conn = get_db_connection()
-    query = '''
-        SELECT login, algorithm, distance 
-        FROM results 
-        ORDER BY distance ASC
-    '''
-    data = conn.execute(query).fetchall()
-    conn.close()
-    return {
-        "labels": [f"{row['login']} - {row['algorithm']}" for row in data],
-        "distances": [row['distance'] for row in data]
-    }
 
 
 def write_data(login, algorithm, description, distance, route):
