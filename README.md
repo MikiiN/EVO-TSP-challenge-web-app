@@ -1,6 +1,6 @@
 # TSP Challenge Leaderboard
 
-A full-stack web application built to track, rank, and visualize student submissions for a Traveling Salesperson Problem (TSP) algorithm competition. 
+A full-stack web application built to track, rank, and visualize student submissions for a Traveling Salesperson Problem (TSP) algorithm competition in the EVO course at FIT BUT. 
 
 This platform allows students to submit their algorithm's route and distance, instantly seeing how they stack up against their classmates on a live leaderboard with interactive statistical charts.
 
